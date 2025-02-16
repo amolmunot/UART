@@ -1,0 +1,219 @@
+module Transmitter(TX_dataout,clk,reset,TX_bit ,TX_DATA);
+output TX_dataout;
+input TX_bit,clk,reset;
+input [7:0] TX_DATA;
+wire s0,s1,shift,load_data,DATA_BIT,PARITY_BIT;
+tx_fsm t1(s0,s1,load_data,shift,TX_bit,clk,reset);
+piso t2(DATA_BIT,TX_DATA,shift,load_data,clk,reset );
+mux_4x1 t3(TX_dataout,DATA_BIT,PARITY_BIT,s0,s1 );
+PARITY_GENERATOR t4(PARITY_BIT,TX_DATA,load_data);
+// Instantiate the module
+endmodule
+
+//tx_fsm.v 
+module tx_fsm(s0,s1,load_data,shift,TX_bit,clk,reset);
+output reg load_data,shift,s0,s1;
+input TX_bit,clk,reset;
+reg [2:0] state, next_state;
+reg flag1,flag2;
+reg temp,temp1;
+reg [3:0]x1=0;
+reg [4:0]x2=0;
+parameter IDLE=3'b000 ,START_BIT=3'b001 ,DATA_BIT=3'b010 ,PARITY_BIT=3'b011
+,STOP_BIT=3'b100;
+always@(*)
+begin
+case(state)
+IDLE :begin next_state=TX_bit?START_BIT:IDLE; load_data=0;shift=0
+;s0=1;s1=1;temp=0;temp1=0;end
+START_BIT :begin next_state=flag1?DATA_BIT:START_BIT;
+load_data=1;shift=0;s0=0;s1=0;temp=0;temp1=1;end
+DATA_BIT: begin next_state=flag2?PARITY_BIT:DATA_BIT;
+load_data=0;shift=1;s0=0;s1=1;temp=1;temp1=0;end
+PARITY_BIT: begin next_state=flag1?STOP_BIT:PARITY_BIT;
+load_data=0;shift=0;s0=1;s1=0;temp=0;temp1=1;end
+STOP_BIT: begin next_state=flag1?IDLE:STOP_BIT;
+load_data=0;shift=0;s0=1;s1=1;temp=0;temp1=1;end
+default: begin next_state=3'b000; load_data=0;shift=0 ;s0=1; s1=1;temp=0;temp1=0;end
+endcase
+end
+always@(posedge clk)
+begin
+if(temp)
+begin
+if(x1==4'd8)
+begin
+flag2=1;
+x1=0;
+end
+else
+begin
+flag2=0;
+x1=x1+1;
+end
+end
+else
+flag2=0;
+end
+always@(posedge clk)
+begin
+if(temp1)
+begin
+if(x2==5'd15)
+begin
+flag1=1;
+x2=0;
+end
+else
+begin
+flag1=0;
+x2=x2+1;
+end
+end
+else
+flag1=0;
+end
+always @(posedge clk,negedge reset)
+begin
+if(~reset)
+state<=IDLE;
+else
+state<=next_state;
+end
+endmodule
+
+//tx_fsmtest.sv 
+module tx_fsmtest;
+// Inputs
+reg TX_bit;
+reg clk;
+reg reset;
+// Outputs
+wire s0;
+wire s1;
+wire load_data;
+wire shift;
+// Instantiate the Unit Under Test (UUT)
+tx_fsm uut (
+.s0(s0),
+.s1(s1),
+.load_data(load_data),
+.shift(shift),
+.reset(reset),
+.TX_bit(TX_bit),
+.clk(clk)
+);
+initial begin
+clk=0;
+#10 TX_bit=1;
+reset=1;
+//#40 TX_bit=1;
+//#20 reset=1;
+end
+always #10 clk=~clk;
+// Initialize Inputs
+endmodule
+
+//parity_generator.v 
+module PARITY_GENERATOR(PARITY_BIT,TX_DATA,load_data);
+output reg PARITY_BIT;
+input [7:0]TX_DATA;
+input load_data;
+always@(*)
+begin
+if(load_data)
+PARITY_BIT = ^TX_DATA;
+else
+PARITY_BIT=1'b0;
+end
+endmodule
+
+//parity_gen.v 
+module parity_gen;
+// Inputs
+reg [7:0] x;
+// Outputs
+wire y;
+// Instantiate the Unit Under Test (UUT)
+PARITY_GENERATOR uut (
+.y(y),
+.x(x)
+);
+initial begin
+#20 x=8'b10110110;
+#20 x=8'b10101001;
+#20 x=8'b11111111;
+#20 x=8'b10111001;
+end
+initial
+$monitor("$time=%d,x=%b,y=%b",$time,x,y);
+endmodule
+
+//piso.v 
+module piso(DATA_BIT,TX_DATA,shift,load_data,clk,reset );
+output reg DATA_BIT=0;
+input clk,reset,shift,load_data;
+input [7:0]TX_DATA;
+reg [7:0]temp;
+always@(posedge clk ,negedge reset)
+begin
+if(!reset)
+begin
+DATA_BIT<=0;
+temp<=0;
+end
+else if(load_data==1)
+begin
+//DATA_BIT<=TX_DATA[0];
+temp<=TX_DATA;
+end
+else if(shift==1)
+begin
+DATA_BIT<=temp[0];
+temp<=temp>>1;
+end
+end
+//assign
+//temp=TX_DATA;
+endmodule
+
+//piso.v 
+module piso(DATA_BIT,TX_DATA,shift,load_data,clk,reset );
+output reg DATA_BIT;
+input clk,reset,shift,load_data;
+input [7:0]TX_DATA;
+reg [7:0]temp;
+assign TX_DATA=temp;
+always@(posedge clk ,negedge reset)
+begin
+if(!reset)
+begin
+DATA_BIT<=0;
+temp<=0;
+end
+else if(load_data==1)
+begin
+//DATA_BIT<=TX_DATA[0];
+temp<=TX_DATA;
+end
+else if(shift==1)
+begin
+DATA_BIT<=temp[0];
+temp<=temp>>1;
+end
+end
+//assign
+//temp=TX_DATA;
+endmodule
+
+//tx_mux.sv 
+module mux_4x1(TX_dataout,DATA_BIT,PARITY_BIT,s0,s1 );
+output TX_dataout;
+input DATA_BIT,PARITY_BIT;
+input s0,s1;
+reg START_BIT=0;
+reg STOP_BIT=1;
+assign
+TX_dataout=(~s0&~s1&START_BIT)|(~s0&s1&DATA_BIT)|(s0&~s1&PARITY_BIT)|(s0&s1&
+STOP_BIT);
+endmodule
