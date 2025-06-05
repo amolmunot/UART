@@ -5,7 +5,7 @@
 
 module TxUnit(
     input wire          reset_n,       //  Active low reset.
-    input wire          send,          //  An enable to start sending data.
+    input wire          switch,          //  An enable to start sending data.
     input wire          clock,         //  The main system's clock.
     input wire  [1:0]   parity_type,   //  Parity type agreed upon by the Tx and Rx units.
     input wire  [1:0]   baud_rate,     //  Baud Rate agreed upon by the Tx and Rx units.
@@ -46,7 +46,7 @@ Parity Unit2(
 PISO Unit3(
     //  Inputs
     .reset_n(reset_n),
-    .send(send),
+    .switch(switch),
     .baud_clk(baud_clk_w),
     .data_in(data_in),
     .parity_bit(parity_bit_w),
