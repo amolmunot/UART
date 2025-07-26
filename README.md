@@ -32,7 +32,7 @@ There are four types of baud clock
 
 2.transmitter circuit
 
-![image2](images/image2.png)
+![image2](images/image2.jpg)
 
 It consists of 2 circuits :- 1. PISO 2. Parity_bit Generator
 
@@ -48,8 +48,7 @@ bit is being tranferrred , the system gets shut down immediately .
 In PISO , in 8bit data :- start bit , parity bit and stop_bit is added
 such thst it becomes 11bit frame .
 
-![image3](images/image3.png){width="5.266666666666667in"
-height="2.591666666666667in"}
+![image3](images/image3.jpg)
 
 Parity_bit Generator produces parity bit , when number of 1 are odd so
 xor of data-in must be 1 , and paraity Type is also odd , then parity
@@ -65,9 +64,7 @@ Done_flag tells us whether the transmission is done or not
 
 Here, one FSM mechanism is being followed :-
 
-0![D:\\users local disc
-c\\Downloads\\image-removebg-preview.png](./image4.png){width="6.282700131233596in"
-height="3.6140780839895013in"}
+![image4](images/image4.jpg)
 
 When the state is IDLE then system is in rest , when start bit arrives
 ,:- firstly whole transmission line is high , to start the transmission
@@ -81,9 +78,7 @@ Hence the transmission part is done.
 
 3.Receiver circuit :-
 
-![D:\\users local disc c\\Downloads\\PISO
-(1).png](./image5.png){width="6.516666666666667in"
-height="3.566666666666667in"}
+![image5](images/image5.jpg)
 
 The data transferred by the transmitter circuit through data_tx wire is
 received by receiver circuit serially , when switch is ON , then further
@@ -92,8 +87,7 @@ through wire "data_parll" to deframing it .
 
 In SIPO ,one FSm mechanism is used :-
 
-![D:\\users local disc c\\Downloads\\data_tx
-=0.png](./image6.png){width="6.01838145231846in" height="3.275in"}
+![image6](images/image6.jpg)
 
 Functions in each stage :-
 
@@ -314,7 +308,4 @@ systems.
 
 • Real-time monitoring via Python script
 
-**📄 License**
 
-This project is licensed under the MIT License. Feel free to use and
-modify with credit.
